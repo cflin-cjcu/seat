@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACS013 座位點名系統</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // 定義圖示組件
+        const Download = () => React.createElement('svg', {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24",
+            height: "24",
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            className: "w-4 h-4"
+        }, 
+            React.createElement('path', { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+            React.createElement('polyline', { points: "7,10 12,15 17,10" }),
+            React.createElement('line', { x1: "12", y1: "15", x2: "12", y2: "3" })
+        );
+
+        const RotateCcw = () => React.createElement('svg', {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24",
+            height: "24",
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            className: "w-4 h-4"
+        },
+            React.createElement('path', { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+            React.createElement('path', { d: "M3 3v5h5" })
+        );
+
+        const Users = ({ className }) => React.createElement('svg', {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24",
+            height: "24",
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            className: className || "w-6 h-6"
+        },
+            React.createElement('path', { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+            React.createElement('circle', { cx: "9", cy: "7", r: "4" }),
+            React.createElement('path', { d: "M22 21v-2a4 4 0 0 0-3-3.87" }),
+            React.createElement('path', { d: "M16 3.13a4 4 0 0 1 0 7.75" })
+        );
+
+        const UserCheck = ({ className }) => React.createElement('svg', {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24",
+            height: "24",
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            className: className || "w-6 h-6"
+        },
+            React.createElement('path', { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+            React.createElement('circle', { cx: "9", cy: "7", r: "4" }),
+            React.createElement('polyline', { points: "16,11 18,13 22,9" })
+        );
+
+        const UserX = ({ className }) => React.createElement('svg', {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "24",
+            height: "24",
+            viewBox: "0 0 24 24",
+            fill: "none",
+            stroke: "currentColor",
+            strokeWidth: "2",
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            className: className || "w-6 h-6"
+        },
+            React.createElement('path', { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+            React.createElement('circle', { cx: "9", cy: "7", r: "4" }),
+            React.createElement('line', { x1: "17", y1: "8", x2: "22", y2: "13" }),
+            React.createElement('line', { x1: "22", y1: "8", x2: "17", y2: "13" })
+        );
+
+        const AttendanceSystem = () => {
+            const studentsData = [
+                { seatNum: "02", name: "黃國崴", studentId: "110B18689", grade: "3", class: "A", status: "" },
+                { seatNum: "03", name: "王珽唯", studentId: "111B01556", grade: "3", class: "A", status: "" },
+                { seatNum: "04", name: "劉祐誠", studentId: "112B01023", grade: "3", class: "A", status: "" },
+                { seatNum: "05", name: "吳泓儒", studentId: "112B01050", grade: "3", class: "A", status: "" },
+                { seatNum: "06", name: "張鈺暉", studentId: "112B05733", grade: "3", class: "A", status: "" },
+                { seatNum: "07", name: "李安妮", studentId: "112B05779", grade: "3", class: "A", status: "" },
+                { seatNum: "08", name: "邱禹瑞", studentId: "112B06036", grade: "3", class: "A", status: "" },
+                { seatNum: "09", name: "許倖諴", studentId: "112B06053", grade: "3", class: "A", status: "" },
+                { seatNum: "10", name: "陳維伸", studentId: "112B06071", grade: "3", class: "A", status: "" },
+                { seatNum: "11", name: "黃閔新", studentId: "112B06099", grade: "3", class: "A", status: "" },
+                { seatNum: "12", name: "王智冠", studentId: "112B06107", grade: "3", class: "A", status: "" },
+                { seatNum: "13", name: "黃裕程", studentId: "112B06133", grade: "3", class: "A", status: "" },
+                { seatNum: "14", name: "陳茂隆", studentId: "112B06179", grade: "3", class: "A", status: "" },
+                { seatNum: "15", name: "吳邑廷", studentId: "112B11288", grade: "3", class: "A", status: "" },
+                { seatNum: "16", name: "江捷翔", studentId: "112B12338", grade: "3", class: "A", status: "" },
+                { seatNum: "17", name: "高珊珊", studentId: "112B13317", grade: "3", class: "A", status: "" },
+                { seatNum: "18", name: "卓宗霆", studentId: "112B16656", grade: "3", class: "A", status: "" },
+                { seatNum: "19", name: "劉彥緯", studentId: "112B16682", grade: "3", class: "A", status: "" },
+                { seatNum: "20", name: "季祖明", studentId: "112B16709", grade: "3", class: "A", status: "" },
+                { seatNum: "21", name: "趙佑銓", studentId: "112B16762", grade: "3", class: "A", status: "" },
+                { seatNum: "22", name: "黃瑞霖", studentId: "112B16771", grade: "3", class: "A", status: "" },
+                { seatNum: "23", name: "鄧宇辰", studentId: "112B16780", grade: "3", class: "A", status: "" },
+                { seatNum: "24", name: "許德慶", studentId: "112B16825", grade: "3", class: "A", status: "" },
+                { seatNum: "25", name: "蕭妤宸", studentId: "112B16833", grade: "3", class: "A", status: "" },
+                { seatNum: "26", name: "廖柏翔", studentId: "112B16897", grade: "3", class: "A", status: "" },
+                { seatNum: "27", name: "杜家丞", studentId: "112B16922", grade: "3", class: "A", status: "" },
+                { seatNum: "28", name: "廖昱棨", studentId: "112B16931", grade: "3", class: "A", status: "" },
+                { seatNum: "29", name: "林昀霏", studentId: "112B16959", grade: "3", class: "A", status: "" },
+                { seatNum: "30", name: "林立玄", studentId: "112B16968", grade: "3", class: "A", status: "" },
+                { seatNum: "31", name: "林庭佑", studentId: "112B16977", grade: "3", class: "A", status: "" },
+                { seatNum: "32", name: "林煒程", studentId: "112B16986", grade: "3", class: "A", status: "" },
+                { seatNum: "33", name: "伍柏霖", studentId: "112B16995", grade: "3", class: "A", status: "" },
+                { seatNum: "34", name: "沈昕道", studentId: "113B10686", grade: "3", class: "A", status: "" },
+                { seatNum: "35", name: "陳映丞", studentId: "113B10695", grade: "3", class: "A", status: "" },
+                { seatNum: "36", name: "謝沅昱", studentId: "113B10702", grade: "3", class: "A", status: "" },
+                { seatNum: "37", name: "楊畯堯", studentId: "113B10711", grade: "3", class: "A", status: "" },
+                { seatNum: "38", name: "林子棋", studentId: "113B16800", grade: "3", class: "A", status: "" },
+                { seatNum: "39", name: "許子瑋", studentId: "111B01529", grade: "4", class: "A", status: "" },
+                { seatNum: "40", name: "劉洺愷", studentId: "111B13803", grade: "4", class: "A", status: "" },
+                { seatNum: "41", name: "陳政愷", studentId: "111B13830", grade: "4", class: "A", status: "" },
+                { seatNum: "42", name: "李誠祐", studentId: "111B13991", grade: "4", class: "A", status: "" },
+                { seatNum: "43", name: "曾凱翔", studentId: "111B15263", grade: "4", class: "A", status: "" },
+                { seatNum: "44", name: "蕭夫凱", studentId: "111B15272", grade: "4", class: "A", status: "" },
+                { seatNum: "45", name: "管以晴", studentId: "111B15326", grade: "4", class: "A", status: "" },
+                { seatNum: "46", name: "許文真", studentId: "111B15673", grade: "4", class: "A", status: "" },
+                { seatNum: "47", name: "王宏恩", studentId: "111B19127", grade: "4", class: "A", status: "" },
+                { seatNum: "48", name: "魏弘勳", studentId: "111B19136", grade: "4", class: "A", status: "" },
+                { seatNum: "49", name: "徐隆鈞", studentId: "112B12720", grade: "4", class: "A", status: "" },
+                { seatNum: "50", name: "張育祥", studentId: "112B12757", grade: "4", class: "A", status: "" },
+                { seatNum: "51", name: "林冠廷", studentId: "112B12766", grade: "4", class: "A", status: "" },
+                { seatNum: "52", name: "王碩毅", studentId: "110B07589", grade: "5", class: "A", status: "" },
+                { seatNum: "53", name: "余延鼎", studentId: "110B13828", grade: "5", class: "A", status: "" },
+                { seatNum: "54", name: "鄭羽婷", studentId: "110B26076", grade: "5", class: "A", status: "" },
+                { seatNum: "55", name: "曾盈智", studentId: "110B26575", grade: "5", class: "A", status: "" },
+                { seatNum: "56", name: "吳道為", studentId: "111B19305", grade: "5", class: "A", status: "" },
+                { seatNum: "57", name: "歐陽恩", studentId: "110B25862", grade: "5", class: "B", status: "" },
+                { seatNum: "58", name: "李翔軒", studentId: "110B26316", grade: "5", class: "B", status: "" }
+            ];
+
+            const findStudent = (name) => {
+                return studentsData.find(s => s.name === name);
+            };
+
+            const seatLayout = {
+                leftBlock: [
+                    [
+                        { id: 1, student: findStudent("黃瑞霖"), row: 1, col: 1, block: 'left' },
+                        { id: 2, student: findStudent("陳維伸"), row: 2, col: 1, block: 'left' },
+                        { id: 3, student: findStudent("趙佑銓"), row: 3, col: 1, block: 'left' },
+                        { id: 4, student: findStudent("許德慶"), row: 4, col: 1, block: 'left' },
+                        { id: 5, student: findStudent("陳茂隆"), row: 5, col: 1, block: 'left' },
+                        { id: 6, student: null, row: 6, col: 1, block: 'left' },
+                        { id: 7, student: findStudent("林子棋"), row: 7, col: 1, block: 'left' },
+                        { id: 8, student: null, row: 8, col: 1, block: 'left' },
+                        { id: 9, student: findStudent("劉祐誠"), row: 9, col: 1, block: 'left' },
+                        { id: 10, student: findStudent("江捷翔"), row: 10, col: 1, block: 'left' }
+                    ],
+                    [
+                        { id: 11, student: findStudent("鄭羽婷"), row: 1, col: 2, block: 'left' },
+                        { id: 12, student: null, row: 2, col: 2, block: 'left' },
+                        { id: 13, student: findStudent("李誠祐"), row: 3, col: 2, block: 'left' },
+                        { id: 14, student: findStudent("楊畯堯"), row: 4, col: 2, block: 'left' },
+                        { id: 15, student: findStudent("沈昕道"), row: 5, col: 2, block: 'left' },
+                        { id: 16, student: findStudent("陳映丞"), row: 6, col: 2, block: 'left' },
+                        { id: 17, student: findStudent("曾盈智"), row: 7, col: 2, block: 'left' },
+                        { id: 18, student: null, row: 8, col: 2, block: 'left' },
+                        { id: 19, student: findStudent("伍柏霖"), row: 9, col: 2, block: 'left' },
+                        { id: 20, student: findStudent("邱禹瑞"), row: 10, col: 2, block: 'left' }
+                    ]
+                ],
+                centerBlock: [
+                    [
+                        { id: 21, student: findStudent("許子瑋"), row: 1, col: 1, block: 'center' },
+                        { id: 22, student: findStudent("王宏恩"), row: 2, col: 1, block: 'center' },
+                        { id: 23, student: findStudent("曾凱翔"), row: 3, col: 1, block: 'center' },
+                        { id: 24, student: findStudent("蕭夫凱"), row: 4, col: 1, block: 'center' },
+                        { id: 25, student: findStudent("鄧宇辰"), row: 5, col: 1, block: 'center' },
+                        { id: 26, student: findStudent("劉彥緯"), row: 6, col: 1, block: 'center' },
+                        { id: 27, student: findStudent("許倖諴"), row: 7, col: 1, block: 'center' },
+                        { id: 28, student: findStudent("季祖明"), row: 8, col: 1, block: 'center' },
+                        { id: 29, student: null, row: 9, col: 1, block: 'center' },
+                        { id: 30, student: null, row: 10, col: 1, block: 'center' }
+                    ],
+                    [
+                        { id: 31, student: findStudent("謝沅昱"), row: 1, col: 2, block: 'center' },
+                        { id: 32, student: findStudent("劉洺愷"), row: 2, col: 2, block: 'center' },
+                        { id: 33, student: findStudent("張育祥"), row: 3, col: 2, block: 'center' },
+                        { id: 34, student: findStudent("徐隆鈞"), row: 4, col: 2, block: 'center' },
+                        { id: 35, student: findStudent("陳政愷"), row: 5, col: 2, block: 'center' },
+                        { id: 36, student: findStudent("王珽唯"), row: 6, col: 2, block: 'center' },
+                        { id: 37, student: findStudent("張鈺暉"), row: 7, col: 2, block: 'center' },
+                        { id: 38, student: findStudent("李安妮"), row: 8, col: 2, block: 'center' },
+                        { id: 39, student: findStudent("吳邑廷"), row: 9, col: 2, block: 'center' },
+                        { id: 40, student: findStudent("魏弘勳"), row: 10, col: 2, block: 'center' }
+                    ]
+                ],
+                rightBlock: [
+                    [
+                        { id: 41, student: findStudent("王智冠"), row: 1, col: 1, block: 'right' },
+                        { id: 42, student: findStudent("林立玄"), row: 2, col: 1, block: 'right' },
+                        { id: 43, student: findStudent("黃國崴"), row: 3, col: 1, block: 'right' },
+                        { id: 44, student: null, row: 4, col: 1, block: 'right' },
+                        { id: 45, student: findStudent("林煒程"), row: 5, col: 1, block: 'right' },
+                        { id: 46, student: findStudent("林昀霏"), row: 6, col: 1, block: 'right' },
+                        { id: 47, student: findStudent("蕭妤宸"), row: 7, col: 1, block: 'right' },
+                        { id: 48, student: null, row: 8, col: 1, block: 'right' },
+                        { id: 49, student: findStudent("吳泓儒"), row: 9, col: 1, block: 'right' },
+                        { id: 50, student: findStudent("黃閔新"), row: 10, col: 1, block: 'right' }
+                    ],
+                    [
+                        { id: 51, student: findStudent("林庭佑"), row: 1, col: 2, block: 'right' },
+                        { id: 52, student: findStudent("廖昱棨"), row: 2, col: 2, block: 'right' },
+                        { id: 53, student: findStudent("杜家丞"), row: 3, col: 2, block: 'right' },
+                        { id: 54, student: null, row: 4, col: 2, block: 'right' },
+                        { id: 55, student: findStudent("廖柏翔"), row: 5, col: 2, block: 'right' },
+                        { id: 56, student: findStudent("卓宗霆"), row: 6, col: 2, block: 'right' },
+                        { id: 57, student: findStudent("許文真"), row: 7, col: 2, block: 'right' },
+                        { id: 58, student: findStudent("管以晴"), row: 8, col: 2, block: 'right' },
+                        { id: 59, student: null, row: 9, col: 2, block: 'right' },
+                        { id: 60, student: findStudent("吳道為"), row: 10, col: 2, block: 'right' }
+                    ]
+                ]
+            };
+
+            const [attendance, setAttendance] = useState({});
+            const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('zh-TW'));
+
+            useEffect(() => {
+                const initialAttendance = {};
+                Object.values(seatLayout).flat().flat().forEach(seat => {
+                    if (seat.student) {
+                        initialAttendance[seat.id] = 0;
+                    }
+                });
+                setAttendance(initialAttendance);
+            }, []);
+
+            const toggleAttendance = (seatId) => {
+                setAttendance(prev => ({
+                    ...prev,
+                    [seatId]: (prev[seatId] + 1) % 3
+                }));
+            };
+
+            const resetAttendance = () => {
+                const resetData = {};
+                Object.values(seatLayout).flat().flat().forEach(seat => {
+                    if (seat.student) {
+                        resetData[seat.id] = 0;
+                    }
+                });
+                setAttendance(resetData);
+            };
+
+            const markAllPresent = () => {
+                const presentData = {};
+                Object.values(seatLayout).flat().flat().forEach(seat => {
+                    if (seat.student) {
+                        presentData[seat.id] = 1;
+                    }
+                });
+                setAttendance(presentData);
+            };
+
+            const getStats = () => {
+                const total = Object.keys(attendance).length;
+                const present = Object.values(attendance).filter(status => status === 1).length;
+                const absent = Object.values(attendance).filter(status => status === 2).length;
+                const unchecked = total - present - absent;
+                return { total, present, absent, unchecked };
+            };
+
+            const exportAttendance = () => {
+                const stats = getStats();
+                const attendanceData = Object.values(seatLayout).flat().flat()
+                    .filter(seat => seat.student)
+                    .map(seat => {
+                        const blockLabel = seat.block === 'left' ? 'L' : seat.block === 'center' ? 'C' : 'R';
+                        const student = seat.student;
+                        return {
+                            座位: blockLabel + '-' + seat.row + '-' + seat.col,
+                            姓名: student.name,
+                            學號: student.studentId,
+                            年級: student.grade,
+                            班級: student.class,
+                            出席狀態: attendance[seat.id] === 1 ? '出席' : attendance[seat.id] === 2 ? '缺席' : '未點名'
+                        };
+                    });
+
+                const content = [
+                    'ACS013 出席記錄 - ' + currentDate,
+                    '總人數: ' + stats.total,
+                    '出席: ' + stats.present + ' 人',
+                    '缺席: ' + stats.absent + ' 人',
+                    '未點名: ' + stats.unchecked + ' 人',
+                    '',
+                    '詳細記錄:'
+                ].concat(attendanceData.map(record => record.座位 + ' ' + record.姓名 + ' (' + record.學號 + ') ' + record.年級 + '年' + record.班級 + '班: ' + record.出席狀態)).join('\n');
+
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ACS013_出席記錄_' + currentDate.replace(/\//g, '-') + '.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const renderSeat = (seat) => {
+                if (!seat.student) {
+                    return React.createElement('div', {
+                        key: seat.id,
+                        className: "w-24 h-20 border-2 border-gray-300 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-sm text-gray-400 m-1"
+                    }, 
+                        React.createElement('div', null, '空位'),
+                        React.createElement('div', { className: "text-xs" }, String(seat.id).padStart(2, '0'))
+                    );
+                }
+
+                const status = attendance[seat.id];
+                let bgColor = 'bg-gray-200 hover:bg-gray-300';
+                let textColor = 'text-gray-700';
+                let borderColor = 'border-gray-400';
+
+                if (status === 1) {
+                    bgColor = 'bg-green-200 hover:bg-green-300';
+                    textColor = 'text-green-800';
+                    borderColor = 'border-green-500';
+                } else if (status === 2) {
+                    bgColor = 'bg-red-200 hover:bg-red-300';
+                    textColor = 'text-red-800';
+                    borderColor = 'border-red-500';
+                }
+
+                const isDroppedOut = seat.student.status && seat.student.status.includes('退學');
+
+                return React.createElement('div', {
+                    key: seat.id,
+                    onClick: () => toggleAttendance(seat.id),
+                    className: `w-24 h-20 border-2 ${borderColor} ${bgColor} rounded-lg cursor-pointer flex flex-col items-center justify-center text-sm ${textColor} transition-all duration-200 transform hover:scale-105 m-1 ${isDroppedOut ? 'opacity-60' : ''}`
+                },
+                    React.createElement('div', { className: "text-center leading-tight text-xs px-1 font-medium" }, seat.student.name),
+                    React.createElement('div', { className: "text-xs text-gray-600 mt-1" }, seat.student.seatNum),
+                    isDroppedOut && React.createElement('div', { className: "text-[10px] text-red-600 font-bold" }, '退學'),
+                    React.createElement('div', { className: "text-sm mt-1 font-bold" }, 
+                        status === 1 ? '✓' : status === 2 ? '✗' : '?'
+                    )
+                );
+            };
+
+            const renderBlock = (block, title) => {
+                return React.createElement('div', { className: "flex flex-col items-center" },
+                    React.createElement('h3', { className: "text-sm font-semibold mb-2 text-gray-600" }, title),
+                    React.createElement('div', { className: "flex gap-4" },
+                        block.map((column, colIndex) =>
+                            React.createElement('div', { key: colIndex, className: "flex flex-col" },
+                                column.map(seat => renderSeat(seat))
+                            )
+                        )
+                    )
+                );
+            };
+
+            const stats = getStats();
+
+            return React.createElement('div', { className: "p-6 max-w-7xl mx-auto bg-white" },
+                React.createElement('div', { className: "text-center mb-6" },
+                    React.createElement('h1', { className: "text-3xl font-bold text-gray-800 mb-2" }, 'ACS013 座位點名系統'),
+                    React.createElement('div', { className: "flex items-center justify-center gap-2" },
+                        React.createElement('span', { className: "text-lg text-gray-600" }, '日期:'),
+                        React.createElement('input', {
+                            type: "text",
+                            value: currentDate,
+                            onChange: (e) => setCurrentDate(e.target.value),
+                            className: "text-lg border rounded px-2 py-1",
+                            placeholder: "請輸入日期",
+                            title: "點名日期"
+                        })
+                    )
+                ),
+
+                React.createElement('div', { className: "grid grid-cols-4 gap-4 mb-6" },
+                    React.createElement('div', { className: "bg-blue-100 p-4 rounded-lg text-center" },
+                        React.createElement('div', { className: "flex items-center justify-center mb-2" },
+                            React.createElement(Users, { className: "w-6 h-6 text-blue-600" })
+                        ),
+                        React.createElement('div', { className: "text-2xl font-bold text-blue-600" }, stats.total),
+                        React.createElement('div', { className: "text-blue-600" }, '總人數')
+                    ),
+                    React.createElement('div', { className: "bg-green-100 p-4 rounded-lg text-center" },
+                        React.createElement('div', { className: "flex items-center justify-center mb-2" },
+                            React.createElement(UserCheck, { className: "w-6 h-6 text-green-600" })
+                        ),
+                        React.createElement('div', { className: "text-2xl font-bold text-green-600" }, stats.present),
+                        React.createElement('div', { className: "text-green-600" }, '出席')
+                    ),
+                    React.createElement('div', { className: "bg-red-100 p-4 rounded-lg text-center" },
+                        React.createElement('div', { className: "flex items-center justify-center mb-2" },
+                            React.createElement(UserX, { className: "w-6 h-6 text-red-600" })
+                        ),
+                        React.createElement('div', { className: "text-2xl font-bold text-red-600" }, stats.absent),
+                        React.createElement('div', { className: "text-red-600" }, '缺席')
+                    ),
+                    React.createElement('div', { className: "bg-gray-100 p-4 rounded-lg text-center" },
+                        React.createElement('div', { className: "flex items-center justify-center mb-2" },
+                            React.createElement(Users, { className: "w-6 h-6 text-gray-600" })
+                        ),
+                        React.createElement('div', { className: "text-2xl font-bold text-gray-600" }, stats.unchecked),
+                        React.createElement('div', { className: "text-gray-600" }, '未點名')
+                    )
+                ),
+
+                React.createElement('div', { className: "flex gap-4 mb-6 justify-center" },
+                    React.createElement('button', {
+                        onClick: markAllPresent,
+                        className: "flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    },
+                        React.createElement(UserCheck, { className: "w-4 h-4" }),
+                        '全部出席'
+                    ),
+                    React.createElement('button', {
+                        onClick: resetAttendance,
+                        className: "flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    },
+                        React.createElement(RotateCcw, { className: "w-4 h-4" }),
+                        '重置'
+                    ),
+                    React.createElement('button', {
+                        onClick: exportAttendance,
+                        className: "flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    },
+                        React.createElement(Download, { className: "w-4 h-4" }),
+                        '匯出記錄'
+                    )
+                ),
+
+                React.createElement('div', { className: "mb-4 p-3 bg-gray-50 rounded-lg" },
+                    React.createElement('h3', { className: "font-semibold mb-2" }, '使用說明：'),
+                    React.createElement('div', { className: "grid grid-cols-3 gap-4 text-sm" },
+                        React.createElement('div', { className: "flex items-center gap-2" },
+                            React.createElement('div', { className: "w-4 h-4 bg-gray-200 border border-gray-400 rounded" }),
+                            React.createElement('span', null, '未點名')
+                        ),
+                        React.createElement('div', { className: "flex items-center gap-2" },
+                            React.createElement('div', { className: "w-4 h-4 bg-green-200 border border-green-500 rounded" }),
+                            React.createElement('span', null, '出席')
+                        ),
+                        React.createElement('div', { className: "flex items-center gap-2" },
+                            React.createElement('div', { className: "w-4 h-4 bg-red-200 border border-red-500 rounded" }),
+                            React.createElement('span', null, '缺席')
+                        )
+                    ),
+                    React.createElement('p', { className: "mt-2 text-sm text-gray-600" }, '點擊座位可切換出席狀態')
+                ),
+
+                React.createElement('div', { className: "text-center mb-6" },
+                    React.createElement('div', { className: "inline-block bg-gray-800 text-white px-8 py-2 rounded-lg" },
+                        '缺席學生座位號: ' + (
+                            Object.values(seatLayout).flat().flat()
+                                .filter(seat => seat.student && attendance[seat.id] === 2)
+                                .map(seat => seat.student.seatNum)
+                                .sort((a, b) => parseInt(a) - parseInt(b))
+                                .join(', ') || '無'
+                        )
+                    )
+                ),
+
+                React.createElement('div', { className: "flex justify-center gap-8 mb-6" },
+                    renderBlock(seatLayout.leftBlock, "左側區域"),
+                    renderBlock(seatLayout.centerBlock, "中間區域"),
+                    renderBlock(seatLayout.rightBlock, "右側區域")
+                ),
+
+                React.createElement('div', { className: "flex justify-center mb-6" },
+                    React.createElement('div', { className: "w-32 h-16 border-2 border-gray-600 bg-yellow-100 rounded-lg flex items-center justify-center text-sm font-semibold text-gray-800" },
+                        '老師座位'
+                    )
+                ),
+
+                React.createElement('div', { className: "mt-6 text-center" },
+                    React.createElement('div', { className: "text-lg font-semibold" },
+                        '出席率: ' + (stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0) + '%'
+                    )
+                )
+            );
+        };
+
+        ReactDOM.render(React.createElement(AttendanceSystem), document.getElementById('root'));
+    </script>
+</body>
+</html>
