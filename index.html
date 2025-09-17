@@ -189,13 +189,13 @@
                         { id: 5, student: findStudent("陳茂隆"), row: 5, col: 1, block: 'left' },
                         { id: 6, student: null, row: 6, col: 1, block: 'left' },
                         { id: 7, student: findStudent("林子棋"), row: 7, col: 1, block: 'left' },
-                        { id: 8, student: null, row: 8, col: 1, block: 'left' },
+                        { id: 8, student: findStudent("黃裕程"), row: 8, col: 1, block: 'left' },
                         { id: 9, student: findStudent("劉祐誠"), row: 9, col: 1, block: 'left' },
                         { id: 10, student: findStudent("江捷翔"), row: 10, col: 1, block: 'left' }
                     ],
                     [
                         { id: 11, student: findStudent("鄭羽婷"), row: 1, col: 2, block: 'left' },
-                        { id: 12, student: null, row: 2, col: 2, block: 'left' },
+                        { id: 12, student: findStudent("歐陽恩"), row: 2, col: 2, block: 'left' },
                         { id: 13, student: findStudent("李誠祐"), row: 3, col: 2, block: 'left' },
                         { id: 14, student: findStudent("楊畯堯"), row: 4, col: 2, block: 'left' },
                         { id: 15, student: findStudent("沈昕道"), row: 5, col: 2, block: 'left' },
@@ -237,7 +237,7 @@
                         { id: 41, student: findStudent("王智冠"), row: 1, col: 1, block: 'right' },
                         { id: 42, student: findStudent("林立玄"), row: 2, col: 1, block: 'right' },
                         { id: 43, student: findStudent("黃國崴"), row: 3, col: 1, block: 'right' },
-                        { id: 44, student: null, row: 4, col: 1, block: 'right' },
+                        { id: 44, student: findStudent("余延鼎"), row: 4, col: 1, block: 'right' },
                         { id: 45, student: findStudent("林煒程"), row: 5, col: 1, block: 'right' },
                         { id: 46, student: findStudent("林昀霏"), row: 6, col: 1, block: 'right' },
                         { id: 47, student: findStudent("蕭妤宸"), row: 7, col: 1, block: 'right' },
@@ -493,7 +493,7 @@
 
                 React.createElement('div', { className: "text-center mb-6" },
                     React.createElement('div', { className: "inline-block bg-gray-800 text-white px-8 py-2 rounded-lg" },
-                        '缺席學生座位號: ' + (
+                        '缺席學生座位號(17,51,52,58): ' + (
                             Object.values(seatLayout).flat().flat()
                                 .filter(seat => seat.student && attendance[seat.id] === 2)
                                 .map(seat => seat.student.seatNum)
