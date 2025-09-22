@@ -172,7 +172,8 @@
                 { seatNum: "55", name: "鄭羽婷", studentId: "110B26076", grade: "5", class: "A", status: "" },
                 { seatNum: "56", name: "曾盈智", studentId: "110B26575", grade: "5", class: "A", status: "" },
                 { seatNum: "57", name: "吳道為", studentId: "111B19305", grade: "5", class: "A", status: "" },
-                { seatNum: "58", name: "歐陽恩", studentId: "110B25862", grade: "5", class: "B", status: "" }
+                { seatNum: "58", name: "歐陽恩", studentId: "110B25862", grade: "5", class: "B", status: "" },
+                { seatNum: "59", name: "李翔軒", studentId: "110B26316", grade: "5", class: "B", status: "" }
                 
             ];
 
@@ -494,7 +495,7 @@
 
                 React.createElement('div', { className: "text-center mb-6" },
                     React.createElement('div', { className: "inline-block bg-gray-800 text-white px-8 py-2 rounded-lg" },
-                        '缺席學生座位號(2,18,52,53): ' + (
+                        '缺席學生座位號(2,18,52,53,59): ' + (
                             Object.values(seatLayout).flat().flat()
                                 .filter(seat => seat.student && attendance[seat.id] === 2)
                                 .map(seat => seat.student.seatNum)
